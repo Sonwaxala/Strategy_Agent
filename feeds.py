@@ -13,21 +13,41 @@ and log a warning rather than failing the whole run.
 FEEDS = [
     # --- TIER 1: SOUTH AFRICA ---
     {"name": "Moneyweb", "url": "https://www.moneyweb.co.za/feed/", "tier": "South Africa"},
-    {"name": "BusinessTech", "url": "https://businesstech.co.za/news/feed/", "tier": "South Africa"},
+
+    # BusinessTech native feed had malformed XML. Google News RSS for the
+    # site is cleaner and updated just as fast.
+    {"name": "BusinessTech", "url": "https://news.google.com/rss/search?q=site:businesstech.co.za&hl=en-ZA&gl=ZA&ceid=ZA:en", "tier": "South Africa"},
+
     {"name": "Daily Maverick (Business Maverick)", "url": "https://www.dailymaverick.co.za/dmrss/", "tier": "South Africa"},
-    {"name": "Mail & Guardian", "url": "https://mg.co.za/feed/", "tier": "South Africa"},
-    {"name": "News24 Top Stories", "url": "https://feeds.news24.com/articles/news24/TopStories/rss", "tier": "South Africa"},
+
+    # Mail & Guardian native feed had malformed XML. Google News RSS fallback.
+    {"name": "Mail & Guardian", "url": "https://news.google.com/rss/search?q=site:mg.co.za&hl=en-ZA&gl=ZA&ceid=ZA:en", "tier": "South Africa"},
+
+    # Old feeds.news24.com subdomain is dead (DNS failure). Correct current
+    # URL is through the capi24 API — using Fin24 (News24's business section)
+    # which is the most relevant for this brief.
+    {"name": "News24 / Fin24 (Business)", "url": "https://feeds.capi24.com/v1/Search/articles/news24/fin24/rss", "tier": "South Africa"},
+
     {"name": "TechCentral", "url": "https://techcentral.co.za/feed", "tier": "South Africa"},
 
     # --- TIER 2: AFRICA ---
     {"name": "How We Made It In Africa", "url": "https://www.howwemadeitinafrica.com/feed/", "tier": "Africa"},
     {"name": "African Business Magazine", "url": "https://african.business/feed/", "tier": "Africa"},
     {"name": "The Africa Report", "url": "https://www.theafricareport.com/feed/", "tier": "Africa"},
-    {"name": "AfricaBusiness.com", "url": "https://africabusiness.com/feed/", "tier": "Africa"},
+
+    # AfricaBusiness.com had a mismatched tag (broken XML). Replaced with
+    # Ventures Africa which covers the same beat and has a clean feed.
+    {"name": "Ventures Africa", "url": "https://venturesafrica.com/feed/", "tier": "Africa"},
 
     # --- TIER 3: GLOBAL ---
-    {"name": "Reuters Business & Finance", "url": "https://www.reutersagency.com/feed/?best-topics=business-finance", "tier": "Global"},
+    # Reuters agency feed was broken. Using Google News RSS for Reuters
+    # business coverage — reliable and self-updating.
+    {"name": "Reuters (via Google News)", "url": "https://news.google.com/rss/search?q=reuters+mergers+acquisitions+strategy&hl=en&gl=US&ceid=US:en", "tier": "Global"},
+
+    # FT RSS requires a subscription to render content. Kept in as it
+    # returns headlines even without full-text access.
     {"name": "Financial Times (Companies)", "url": "https://www.ft.com/companies?format=rss", "tier": "Global"},
+
     {"name": "Fortune", "url": "https://fortune.com/feed/", "tier": "Global"},
     {"name": "Yahoo Finance", "url": "https://finance.yahoo.com/news/rssindex", "tier": "Global"},
 ]
