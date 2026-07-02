@@ -1,0 +1,42 @@
+name: Strategy Agent Weekly Report
+
+on:
+  schedule:
+    # 07:30 UTC = 09:30 SAST (SA is UTC+2, no DST)
+    - cron: "30 7 * * 1"
+  workflow_dispatch: {}   # allows manual "Run workflow" trigger for testing
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Strategy Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python main.py
+
+      - name: Commit updated memory database
+        # The dedup database is the agent's memory of what it has already
+        # sent. It must be committed back to the repo after every run or
+        # next week's dedup check starts from nothing.
+        run: |
+          git config --global user.name "strategy-agent-bot"
+          git config --global user.email "actions@github.com"
+          git add strategy_agent_memory.db
+          git diff --staged --quiet || git commit -m "Update memory store [skip ci]"
+          git push
