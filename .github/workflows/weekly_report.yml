@@ -40,3 +40,6 @@ jobs:
           git add strategy_agent_memory.db
           git diff --staged --quiet || git commit -m "Update memory store [skip ci]"
           git push
+git add .
+git commit -m "switch analysis engine to Claude Code CLI via subscription token"
+git push origin main
