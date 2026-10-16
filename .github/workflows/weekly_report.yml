@@ -2,44 +2,51 @@ name: Strategy Agent Weekly Report
 
 on:
   schedule:
-    # 07:30 UTC = 09:30 SAST (SA is UTC+2, no DST)
-    - cron: "30 7 * * 1"
-  workflow_dispatch: {}   # allows manual "Run workflow" trigger for testing
+    # Runs every Monday at 05:23 UTC (07:23 AM SAST)
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
 
 jobs:
-  run-report:
+  run-agent:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Install Claude Code CLI
+        run: npm install -g --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code
+
+      - name: Configure Git for Memory Commit
+        run: |
+          git config --global user.name "strategy-agent-bot"
+          git config --global user.email "bot@github.com"
 
       - name: Run Strategy Agent
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python main.py
 
-      - name: Commit updated memory database
-        # The dedup database is the agent's memory of what it has already
-        # sent. It must be committed back to the repo after every run or
-        # next week's dedup check starts from nothing.
+      - name: Commit Updated Database Memory
+        if: always()
         run: |
-          git config --global user.name "strategy-agent-bot"
-          git config --global user.email "actions@github.com"
-          git add strategy_agent_memory.db
-          git diff --staged --quiet || git commit -m "Update memory store [skip ci]"
-          git push
-git add .
-git commit -m "switch analysis engine to Claude Code CLI via subscription token"
-git push origin main
+          git add strategy_agent_memory.db || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update memory store [skip ci]" && git push)
